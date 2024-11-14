@@ -8,15 +8,15 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
 # Cargar datos
-X = pd.read_csv('dataset01.csv')
+X = pd.read_csv('C:/Users/marco/Desktop/Udesa/Metodos/Tp3/dataset01.csv')
 X = X.iloc[:, 1:].values  # Eliminar la primera columna
-y = pd.read_csv('y1.txt', header=None).squeeze().values  # Cargar y.txt y convertirlo en un array unidimensional
+y = pd.read_csv('C:/Users/marco/Desktop/Udesa/Metodos/Tp3/y1.txt', header=None).squeeze().values  # Cargar y.txt y convertirlo en un array unidimensional
 
 print(f"Shape of X: {X.shape}")
 print(f"Shape of y: {y.shape}")
 
 # Probar diferentes dimensiones d
-dimensions = [2, 6, 10, X.shape[1]]
+dimensions = [2, 6, 10, 50, 100, 150, X.shape[1]]
 pca_results = {}
 
 for d in dimensions:
@@ -26,13 +26,11 @@ for d in dimensions:
 
     print(f"PCA with d={d}: explained variance ratio: {pca.explained_variance_ratio_}")
 
-
     # Gráfico 2D
     Z_2d = pca_results[d][0]
 
     plt.figure(figsize=(10, 8))
     plt.scatter(Z_2d[:, 0], Z_2d[:, 1], cmap='winter', s=10)
-    #plt.title(f"Clusters in 2D PCA space with d={d}")
     plt.xlabel('PC 1')
     plt.ylabel('PC 2')
     plt.show()
@@ -44,7 +42,6 @@ for d in dimensions:
         fig = plt.figure(figsize=(10, 8))
         ax = fig.add_subplot(111, projection='3d')
         sc = ax.scatter(Z_3d[:, 0], Z_3d[:, 1], Z_3d[:, 2], cmap='winter', s=10)
-        #plt.title(f"Clusters in 3D PCA space with d={d}")
         ax.set_xlabel('PC 1')
         ax.set_ylabel('PC 2')
         ax.set_zlabel('PC 3')
@@ -55,16 +52,13 @@ explained_variances = [pca_results[d][1].explained_variance_ratio_.sum() for d i
 plt.plot(dimensions, explained_variances, marker='o')
 plt.xlabel('Numero de dimensiones d')
 plt.ylabel('Varianza explicada acumulativa')
-#plt.title('Explained variance ratio by number of dimensions')
 plt.show()
-
 
 # Función para calcular la matriz de similaridad
 def similarity_matrix(X, sigma=1.0):
     dist_matrix = euclidean_distances(X)
     sim_matrix = np.exp(-dist_matrix ** 2 / (2 * sigma ** 2))
     return sim_matrix
-
 
 # Matrices de similaridad
 similarity_matrices = {d: similarity_matrix(pca_results[d][0]) for d in dimensions}
@@ -73,13 +67,11 @@ original_similarity_matrix = similarity_matrix(X)
 # Visualización de matrices de similaridad
 plt.figure(figsize=(10, 8))
 sns.heatmap(original_similarity_matrix, cmap='viridis')
-#plt.title('Original Similarity Matrix')
 plt.show()
 
 for d in dimensions:
     plt.figure(figsize=(10, 8))
     sns.heatmap(similarity_matrices[d], cmap='viridis')
-    #plt.title(f'Similarity Matrix with d={d}')
     plt.show()
 
 # Importancia de las dimensiones originales
@@ -98,14 +90,14 @@ def evaluate_regression(X, y):
     model.fit(X, y)
     y_pred = model.predict(X)
     mse = mean_squared_error(y, y_pred)
-    return mse, model.coef_
+    return mse, model.coef_, y_pred  
 
 # Evaluamos el error para diferentes dimensiones d
 mse_results = {}
 
 for d in dimensions:
     Z, _ = pca_results[d]
-    mse, coefs = evaluate_regression(Z, y)
+    mse, coefs, y_pred = evaluate_regression(Z, y)
     mse_results[d] = mse
     print(f"MSE for d={d}: {mse}")
     print(f"Regression coefficients for d={d}: {coefs}")
@@ -114,5 +106,18 @@ for d in dimensions:
 plt.plot(dimensions, [mse_results[d] for d in dimensions], marker='o')
 plt.xlabel('Numero de dimensiones d')
 plt.ylabel('Error cuadrático medio')
-#plt.title('MSE by number of dimensions')
 plt.show()
+
+# Realizar predicción con d=2
+Z_2d, _ = pca_results[2]
+_, _, y_pred_2d = evaluate_regression(Z_2d, y)
+
+# Calcular errores individuales
+errors_2d = np.abs(y - y_pred_2d)
+
+# Ordenar muestras por menor error y mostrar las de mejor predicción
+best_predictions_indices = np.argsort(errors_2d)[:10]  
+print("Índices de las muestras con mejor predicción para d=2:")
+print(best_predictions_indices)
+print("Errores de las mejores predicciones para d=2:")
+print(errors_2d[best_predictions_indices])
