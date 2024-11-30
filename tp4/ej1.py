@@ -29,7 +29,8 @@ def gradient_descent(start, learning_rate, tol=1e-3, max_iter=10000):
         if np.linalg.norm(grad) < tol:
             break
     return np.array(trajectory), rosenbrock(x, y), i + 1, gradient_norms
-# Probar distintos eta
+
+# -------------------Probar distintos eta----------------------------
 
 # Parámetros iniciales
 learning_rates = [0.001]

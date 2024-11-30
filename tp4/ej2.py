@@ -20,12 +20,12 @@ scaler = StandardScaler()
 X_train[:, 1:] = scaler.fit_transform(X_train[:, 1:])
 X_test[:, 1:] = scaler.transform(X_test[:, 1:])
 
-# Implementar cuadrados minimos
+# -------------------Implementar cuadrados minimos --------------------------
 # 4. Pseudoinversa
 def pseudoinverse_solution(X, y):
     return np.linalg.pinv(X.T @ X) @ X.T @ y
 
-# Implementar gradiente descendiente, emplear tasa igual a 1/sigma1^2, sigma1 siendo primer valor singular de X, pq tiene sentido usar ese valor?
+# --------------Implementar gradiente descendiente, emplear tasa igual a 1/sigma1^2, sigma1 siendo primer valor singular de X, pq tiene sentido usar ese valor?---------------------------
 # 5. Descenso por gradiente
 def gradient_descent(X, y, learning_rate, iterations):
     w = np.zeros(X.shape[1])  # Inicialización
@@ -52,26 +52,29 @@ learning_rate = 1 / (sigma1 ** 2)
 iterations = 10000000
 w_gradient, errors = gradient_descent(X_train, y_train, learning_rate, iterations)
 
-
+# --------------Comparar solucion obtenida por la pseudoinversa con grad desc para distintos eta----------------------
 # 6. Comparar soluciones
 def evaluate_model(X, y, w):
     y_pred = X @ w
     mse = np.mean((y - y_pred) ** 2)
-    return mse
+    return y_pred, mse
 
 w_pseudo = pseudoinverse_solution(X_train, y_train)
-train_error_pseudo = evaluate_model(X_train, y_train, w_pseudo)
-test_error_pseudo = evaluate_model(X_test, y_test, w_pseudo)
+_,train_error_pseudo = evaluate_model(X_train, y_train, w_pseudo)
+pseudo_pred, test_error_pseudo = evaluate_model(X_test, y_test, w_pseudo)
 
-train_error_gradient = evaluate_model(X_train, y_train, w_gradient)
-test_error_gradient = evaluate_model(X_test, y_test, w_gradient)
+_,train_error_gradient = evaluate_model(X_train, y_train, w_gradient)
+gradient_pred,test_error_gradient = evaluate_model(X_test, y_test, w_gradient)
 
+# ---------------Mostrar error en conjunto de entrenamiento y de prueba frente a numero de iteraciones para grad desc-----------------------
 # Mostrar errores
 print("Pseudoinversa:")
+print(f"Prediccion: {pseudo_pred}")
 print(f"Error en entrenamiento: {train_error_pseudo:.4f}")
 print(f"Error en testeo: {test_error_pseudo:.4f}")
 
 print("\nDescenso por gradiente:")
+print(f"Prediccion: {gradient_pred}")
 print(f"Error en entrenamiento: {train_error_gradient:.4f}")
 print(f"Error en testeo: {test_error_gradient:.4f}")
 
@@ -81,6 +84,3 @@ plt.xlabel("Iteraciones")
 plt.ylabel("Error cuadrático medio")
 plt.title("Descenso por gradiente: Convergencia del error")
 plt.show()
-
-# Comparar solucion obtenida por la pseudoinversa con grad desc para distintos eta
-# Mostrar error en conjunto de entrenamiento y de prueba frente a numero de iteraciones para grad desc
